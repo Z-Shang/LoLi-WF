@@ -1,3 +1,8 @@
+//Author: Z-Shang
+//Email: shangzhanlin@gmail.com
+//Version: 0.1
+
+
 //LoLi-Core Part
 var L_ERR = "";
 
@@ -637,6 +642,10 @@ loli_ns_proto.attachedCallback = function() {
         for(var i = 0; i < elms.length; i++){
             elms[i].innerHTML = EVAL_T_ENV(elms[i].innerHTML);
         }
+        var elmsm = document.querySelectorAll("loli-exp-m");
+        for(var i = 0; i < elmsm.length; i++){
+            elmsm[i].innerHTML = EVAL_FILE_T_ENV(elmsm[i].innerHTML);
+        }
         genesis();
     });
     this.remove();
@@ -650,6 +659,12 @@ loli_elm_proto.attachedCallback = function() {
 }
 var loli_elm = document.registerElement("loli-exp", {prototype: loli_elm_proto});
 
+var loli_elm_m_proto = Object.create(HTMLElement.prototype);
+loli_elm_m_proto.attachedCallback = function() {
+    if(AUTO_EVAL)
+        this.innerHTML = EVAL_FILE_T_ENV(this.innerHTML);
+}
+var loli_elm_m = document.registerElement("loli-exp-m", {prototype: loli_elm_m_proto});
 //Compiler
 //
 //DOM Object to String
