@@ -3,3 +3,9 @@ LoLi-WF
 ---
 
 LoLi-WF is an embeddable web framework like Angular.JS using LoLi instead of JS, based on LoLi-JS.
+
+---
+Licence
+=
+---
+**GPLv3+**
