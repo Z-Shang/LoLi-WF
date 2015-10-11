@@ -615,29 +615,20 @@ function elementToString(obj){
     return tmp.innerHTML;
 }
 
-//Node => Symbol
-function getSym(n){
-    return n.getAttribute("loli-sym");
-}
-
 //Node => Exp
 function getExp(n){
     return n.getAttribute("loli-exp");
 }
 
 function compileNode(n){
-    console.log(n);
     if(n.hasAttribute){
         if(n.hasAttribute("loli-exp")){
             n.innerHTML = EVAL_T_ENV(getExp(n));
-        }else if(n.hasAttribute("loli-sym")){
-            n.innerHTML = EVAL_T_ENV(getSym(n));
         }
     }
 }
 
 function compileNodeList(nlst){
-    console.log(nlst.length);
     if(nlst.length == 0){
     }else{
         for(var i = 0; i < nlst.length; i++){
