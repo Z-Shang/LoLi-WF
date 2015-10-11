@@ -598,6 +598,15 @@ function EVAL_T_ENV(str){
     return EVAL_W_ENV(str, L_TOP_ENV);
 }
 
+function EVAL_FILE_T_ENV(f){
+    alert(f);
+    while(f != ""){
+        var tmp = pairUp(f);
+        console.log(EVAL_T_ENV(tmp));
+        f = f.substring(tmp.length);
+    }
+}
+
 //Test Env
 var test = "(def test \"Hello123\")";
 EVAL_T_ENV(test);
@@ -609,6 +618,11 @@ loli_elm_proto.createdCallback = function() {
 }
 var loli_elm = document.registerElement("loli-exp", {prototype: loli_elm_proto});
 
+var loli_ns_proto = Object.create(HTMLElement.prototype);
+loli_ns_proto.createdCallback = function() {
+    $.get(this.innerHTML, EVAL_FILE_T_ENV);
+}
+var loli_ns = document.registerElement("loli-ns", {prototype: loli_ns_proto});
 
 //Compiler
 //
@@ -645,15 +659,10 @@ function compileNodeList(nlst){
 
 //Genesis
 var metas,
-    rootElement;
+    rootElement,
+    loliNSURL;
 
 function genesis(){
-    var metas = document.getElementsByTagName("META");
-    for(var i = 0; i < metas.length; i++){
-        if(metas[i].getAttribute("name") == "loli-file")
-            loliFileURL = metas[i].getAttribute("content");
-    }
-
     if (document.querySelectorAll){
         var rootElement = document.querySelectorAll("html,body,div");
     }else{
