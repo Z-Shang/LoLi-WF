@@ -272,6 +272,56 @@ function PRIM_SET(obj, env){
     }
 }
 
+function PRIM_NOT(obj, env){
+    if(!isDerived(obj.head().type, L_BOOL)){
+        L_ERR = "Not a boolean value!";
+        console.error(L_ERR);
+        return L_FALSE;
+    }else{
+        if(obj.head().value == "TRUE"){
+            return L_FALSE;
+        }else{
+            return L_TRUE;
+        }
+    }
+}
+
+function PRIM_AND(obj, env){
+    if(!isDerived(obj.head().type, L_BOOL)){
+        L_ERR = "Not a boolean value!";
+        console.error(L_ERR);
+        return L_FALSE;
+    }else{
+        if(obj.tail() == L_NIL){
+            return obj.head();
+        }else{
+            if(obj.head() == L_FALSE){
+                return L_FALSE;
+            }else{
+                return PRIM_AND(obj.tail(), env);
+            }
+        }
+    }
+}
+
+function PRIM_OR(obj, env){
+    if(!isDerived(obj.head().type, L_BOOL)){
+        L_ERR = "Not a boolean value!";
+        console.error(L_ERR);
+        return L_FALSE;
+    }else{
+        if(obj.tail() == L_NIL){
+            return obj.head();
+        }else{
+            if(obj.head() == L_TRUE){
+                return L_TRUE;
+            }else{
+                return PRIM_AND(obj.tail(), env);
+            }
+        }
+    }
+}
+
 function PRIM_IF(obj, env){
     var cond = obj.head().eval(env);
     obj = obj.tail();
@@ -639,6 +689,9 @@ addToEnv( loliSym("tail"), loliPrim(L_CONS, L_OBJ, PRIM_TAIL));
 addToEnv( loliSym("def"), loliPrim(L_OBJ, L_OBJ, PRIM_DEF));
 addToEnv( loliSym("set!"), loliPrim(L_OBJ, L_OBJ, PRIM_SET));
 addToEnv( loliSym("if"), loliPrim(L_OBJ, L_OBJ, PRIM_IF));
+addToEnv( loliSym("and"), loliPrim(L_OBJ, L_OBJ, PRIM_AND));
+addToEnv( loliSym("or"), loliPrim(L_OBJ, L_OBJ, PRIM_OR));
+addToEnv( loliSym("not"), loliPrim(L_OBJ, L_OBJ, PRIM_NOT));
 addToEnv( loliSym("typeof"), loliPrim(L_OBJ, L_OBJ, PRIM_TYPE_OF));
 addToEnv( loliSym("eq?"), loliPrim(L_OBJ, L_BOOL, PRIM_EQ));
 addToEnv( loliSym(">"), loliPrim(L_NUM, L_BOOL, PRIM_GR));
@@ -672,7 +725,6 @@ addToEnv( loliSym("member-of?"), loliPrim(L_OBJ, L_BOOL, L_MO));
 function L_LIST(arg, env){
     if(arg.tail() == L_NIL)
         return arg;
-    console.log(arg.head().toString());
     return loliCons(arg.head(), L_LIST(arg.tail(), env));
 }
 
