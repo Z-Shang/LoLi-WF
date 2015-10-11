@@ -699,6 +699,24 @@ function L_STRUCT(name, slots){
         }
     }
     addToEnv( loliSym(name + "-get"), loliPrim(tmpType, L_OBJ, tmpAcc));
+    function tmpSet(arg, env){
+        if(!isDerived(arg.head().type, tmpType)){
+            L_ERR = "Type doesn't match!";
+            console.error(L_ERR);
+            return L_NIL;
+        }else{
+            for(var key in arg.head().value){
+                if(key == arg.tail().head().value){
+                    arg.head().value[key] = arg.tail().tail().head();
+                    return arg.tail().tail().head();
+                }
+            }
+            L_ERR = "Slot " + arg.tail().head().value + " doesn't exist!";
+            console.error(L_ERR);
+            return L_NIL;
+        }
+    }
+    addToEnv( loliSym(name + "-set"), loliPrim(tmpType, L_OBJ, tmpSet));
     var tmpConstructor = function(values){
         var tmpMap = {};
         var l = L_LENGTH(slots);
