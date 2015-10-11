@@ -332,7 +332,7 @@ function PRIM_IF(obj, env){
     }else{
         wfalse = L_NIL;
     }
-    if(cond.value == "TRUE"){
+    if(cond.value != "FALSE"){
         return wtrue.eval(env);
     }else{
         return wfalse.eval(env);
