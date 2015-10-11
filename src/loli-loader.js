@@ -577,6 +577,25 @@ function L_REVERSE(a){
     return tmp;
 }
 
+function JS_FFI_BIND(fobj, arity, sym, rtype){
+    var tmpFn = function(obj, env){
+        var args = [];
+        for(var i = 0; i < arity; i++){
+            args[i] = obj.head();
+            obj = obj.tail();
+        }
+        var res = fobj.apply(null, args);
+        if(res){
+            return res;
+        }else{
+            return L_NIL;
+        }
+    }
+    addToEnv(loliSym(sym), loliPrim(L_OBJ, rtype, tmpFn));
+}
+
+JS_FFI_BIND(function(a){ alert(a);}, 1, "alert", L_OBJ);
+
 addToEnv( L_T, L_T);
 addToEnv( loliSym("quote"), L_QUOTE);
 addToEnv( loliSym("\\"), loliPrim(L_OBJ, L_OBJ, PRIM_LAMBDA));
