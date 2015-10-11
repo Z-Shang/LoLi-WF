@@ -416,7 +416,14 @@ function PRIM_DIV(a, env){
 }
 
 function PRIM_CONS(a, env){
-    return loliCons(a.head(), a.tail().head());
+    var h, t;
+    if(isDerived(a.head().type, L_CONS)){
+        h = a.head().eval(env);
+    }
+    if(isDerived(a.tail().head().type, L_CONS)){
+        t = a.tail().head().eval(env);
+    }
+    return loliCons(h, t);
 }
 
 function PRIM_HEAD(a, env){
@@ -723,9 +730,13 @@ function L_MO(arg, env){
 addToEnv( loliSym("member-of?"), loliPrim(L_OBJ, L_BOOL, L_MO));
 
 function L_LIST(arg, env){
-    if(arg.tail() == L_NIL)
+    if(arg == L_NIL)
         return arg;
-    return loliCons(arg.head(), L_LIST(arg.tail(), env));
+    if(isDerived(arg.head().type, L_CONS)){
+        return loliCons(arg.head().eval(env), L_LIST(arg.tail(), env));
+    }else{
+        return loliCons(arg.head(), L_LIST(arg.tail(), env));
+    }
 }
 
 addToEnv( loliSym("list"), loliPrim(L_OBJ, L_CONS, L_LIST));
@@ -769,16 +780,17 @@ function L_STRUCT(name, slots){
         }
     }
     addToEnv( loliSym(name + "-set!"), loliPrim(tmpType, L_OBJ, tmpSet));
-    var tmpConstructor = function(values){
-        var tmpMap = {};
+    function tmpConstructor(values){
+        var tmpMap = new Object();
         var l = L_LENGTH(slots);
+        var tmpSlots = slots;
         for(var i = 0; i < l; i++){
-            slot = slots.head().toString();
+            slot = tmpSlots.head().toString();
             tmpMap[slot] = values.head();
-            slots = slots.tail();
+            tmpSlots = tmpSlots.tail();
             values = values.tail();
         }
-        var obj = loliObj(tmpMap, tmpType);
+        var obj = new loliObj(tmpMap, tmpType);
         obj.toString = function(){
             var str = name.value + " : {\n";
             for(var key in obj.value){
