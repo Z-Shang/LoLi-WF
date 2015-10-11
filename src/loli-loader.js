@@ -708,7 +708,7 @@ function L_STRUCT(name, slots){
             for(var key in arg.head().value){
                 if(key == arg.tail().head().value){
                     arg.head().value[key] = arg.tail().tail().head();
-                    return arg.tail().tail().head();
+                    return arg.head();
                 }
             }
             L_ERR = "Slot " + arg.tail().head().value + " doesn't exist!";
@@ -716,7 +716,7 @@ function L_STRUCT(name, slots){
             return L_NIL;
         }
     }
-    addToEnv( loliSym(name + "-set"), loliPrim(tmpType, L_OBJ, tmpSet));
+    addToEnv( loliSym(name + "-set!"), loliPrim(tmpType, L_OBJ, tmpSet));
     var tmpConstructor = function(values){
         var tmpMap = {};
         var l = L_LENGTH(slots);
