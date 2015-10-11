@@ -2,13 +2,14 @@
 <html>
     <head>
         <title>Test of LoLi-WF</title>
-        <script src="./src/loli-loader.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script src="./src/loli-loader.js"></script>
     </head>
     <body>
         <loli-ns>test.loli</loli-ns>
         <loli-exp>(def test 2)</loli-exp>
         <br>
-        <loli-exp>(+ 1 test)</loli-exp>
+        <loli-exp>(+ 1 test abc)</loli-exp>
+        <b loli-exp="(+ 1 test abc)"></b>
     </body>
 </html>

@@ -488,7 +488,7 @@ function parser(str){
 function parse_list(str){
     while(str[0] == ' ' || str[0] == '\t' || str[0] == '\n'){
         str = str.substr(1);
-    }   
+    }
     if(str == ''){
         return L_NIL;
     }
@@ -599,30 +599,56 @@ function EVAL_T_ENV(str){
 }
 
 function EVAL_FILE_T_ENV(f){
-    alert(f);
     while(f != ""){
         var tmp = pairUp(f);
-        console.log(EVAL_T_ENV(tmp));
         f = f.substring(tmp.length);
+        EVAL_T_ENV(tmp);
     }
 }
 
-//Test Env
-var test = "(def test \"Hello123\")";
-EVAL_T_ENV(test);
+//Global Vars for FE
+var metas,
+    rootElement,
+    loliNSURL;
+
+//Genesis
+function genesis(){
+    if (document.querySelectorAll){
+        var rootElement = document.querySelectorAll("html,body,div");
+    }else{
+        var rootElement = null;
+    }
+
+    //Extract the Node List from rootElement
+    rootElement = rootElement[0];
+    compileNodeList(rootElement.childNodes);
+}
 
 //Register Custome Element
-var loli_elm_proto = Object.create(HTMLElement.prototype);
-loli_elm_proto.createdCallback = function() {
-    this.innerHTML = EVAL_T_ENV(this.innerHTML);
-}
-var loli_elm = document.registerElement("loli-exp", {prototype: loli_elm_proto});
-
+var AUTO_EVAL = true;
 var loli_ns_proto = Object.create(HTMLElement.prototype);
-loli_ns_proto.createdCallback = function() {
-    $.get(this.innerHTML, EVAL_FILE_T_ENV);
+loli_ns_proto.createdCallback = function(){
+    AUTO_EVAL = false;
+}
+loli_ns_proto.attachedCallback = function() {
+    $.get(this.innerHTML, function(o){
+        EVAL_FILE_T_ENV(o);
+        var elms = document.querySelectorAll("loli-exp");
+        for(var i = 0; i < elms.length; i++){
+            elms[i].innerHTML = EVAL_T_ENV(elms[i].innerHTML);
+        }
+        genesis();
+    });
+    this.remove();
 }
 var loli_ns = document.registerElement("loli-ns", {prototype: loli_ns_proto});
+
+var loli_elm_proto = Object.create(HTMLElement.prototype);
+loli_elm_proto.attachedCallback = function() {
+    if(AUTO_EVAL)
+        this.innerHTML = EVAL_T_ENV(this.innerHTML);
+}
+var loli_elm = document.registerElement("loli-exp", {prototype: loli_elm_proto});
 
 //Compiler
 //
@@ -655,23 +681,6 @@ function compileNodeList(nlst){
             compileNodeList(nlst[i].childNodes);
         }
     }
-}
-
-//Genesis
-var metas,
-    rootElement,
-    loliNSURL;
-
-function genesis(){
-    if (document.querySelectorAll){
-        var rootElement = document.querySelectorAll("html,body,div");
-    }else{
-        var rootElement = null;
-    }
-
-    //Extract the Node List from rootElement
-    rootElement = rootElement[0];
-    compileNodeList(rootElement.childNodes);
 }
 
 document.addEventListener("DOMContentLoaded", genesis, false);
