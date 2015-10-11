@@ -297,6 +297,7 @@ function PRIM_ADD(a, env){
     while(a != L_NIL){
         if(!isDerived(a.head().type, L_NUM)){
             L_ERR = "Cannot apply arithmetic function on non-numeric value";
+            console.error(L_ERR);
             return L_NIL;
         }else{
             tmp = tmp + a.head().value;
@@ -312,6 +313,7 @@ function PRIM_SUB(a, env){
     while(a != L_NIL){
         if(!isDerived(a.head().type, L_NUM)){
             L_ERR = "Cannot apply arithmetic function on non-numeric value";
+            console.error(L_ERR);
             return L_NIL;
         }else{
             tmp = tmp - a.head().value;
@@ -326,6 +328,7 @@ function PRIM_MUL(a, env){
     while(a != L_NIL){
         if(!isDerived(a.head().type, L_NUM)){
             L_ERR = "Cannot apply arithmetic function on non-numeric value";
+            console.error(L_ERR);
             return L_NIL;
         }else{
             tmp = tmp * a.head().value;
@@ -341,12 +344,14 @@ function PRIM_DIV(a, env){
     while(a != L_NIL){
         if(!isDerived(a.head().type, L_NUM)){
             L_ERR = "Cannot apply arithmetic function on non-numeric value";
+            console.error(L_ERR);
             return L_NIL;
         }else{
             if(a.head().value != 0){
                 tmp = tmp / a.head().value;
             }else{
                 L_ERR = "Divide by zero";
+                console.error(L_ERR);
                 return L_NIL;
             }
         }
