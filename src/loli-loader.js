@@ -91,7 +91,7 @@ function loliBool(value){
     }
 }
 
-var DO_NOT_EVAL = ["if", "def", "set!", "quote", "\\"];
+var DO_NOT_EVAL = ["if", "def", "set!", "quote", "\\", "defstruct"];
 
 function loliCons(car, cdr){
     var consV = Object();
@@ -577,24 +577,54 @@ function L_REVERSE(a){
     return tmp;
 }
 
-function JS_FFI_BIND(fobj, arity, sym, rtype){
-    var tmpFn = function(obj, env){
-        var args = [];
-        for(var i = 0; i < arity; i++){
-            args[i] = obj.head();
-            obj = obj.tail();
-        }
-        var res = fobj.apply(null, args);
-        if(res){
-            return res;
-        }else{
-            return L_NIL;
-        }
+function L_LENGTH(lst){
+    if(lst == L_NIL){
+        return 0;
     }
-    addToEnv(loliSym(sym), loliPrim(L_OBJ, rtype, tmpFn));
+    if(!isDerived(lst.type, L_CONS)){
+        return 1;
+    }else{
+        return 1 + L_LENGTH(lst.tail());
+    }
 }
 
-JS_FFI_BIND(function(a){ alert(a);}, 1, "alert", L_OBJ);
+function listToArray(lst){
+    var tmp = [];
+    var l = L_LENGTH(lst);
+    for(var i = 0; i < l; i++){
+        if(!isDerived(lst.head().type, L_CONS)){
+            tmp[i] = lst.head().eval(L_TOP_ENV);
+        }else{
+            tmp[i] = listToArray(lst.head());
+        }
+        lst = lst.tail();
+    }
+}
+
+//function JS_FFI_BIND(fobj, arity, sym, rtype){
+    //var tmpFn = function(obj, env){
+        //var args = [];
+        //for(var i = 0; i < arity; i++){
+            //console.log(obj);
+            //console.log(obj.toString());
+            //if(!isDerived(obj.head().type, L_CONS)){
+                    //args[i] = obj.head().eval(L_TOP_ENV);
+            //}else{
+                    //args[i] = listToArray(obj.head());
+            //}
+            //obj = obj.tail();
+        //}
+        //var res = fobj.apply(null, args);
+        //if(res){
+            //return res;
+        //}else{
+            //return L_NIL;
+        //}
+    //}
+    //addToEnv(loliSym(sym), loliPrim(L_OBJ, rtype, tmpFn));
+//}
+
+//JS_FFI_BIND(function(a){ alert(a);}, 1, "alert", L_OBJ);
 
 addToEnv( L_T, L_T);
 addToEnv( loliSym("quote"), L_QUOTE);
@@ -613,6 +643,94 @@ addToEnv( loliSym("typeof"), loliPrim(L_OBJ, L_OBJ, PRIM_TYPE_OF));
 addToEnv( loliSym("eq?"), loliPrim(L_OBJ, L_BOOL, PRIM_EQ));
 addToEnv( loliSym(">"), loliPrim(L_NUM, L_BOOL, PRIM_GR));
 addToEnv( loliSym("<"), loliPrim(L_NUM, L_BOOL, PRIM_LS));
+
+//Some Collection Functions
+function memberOf(o, lst){
+    console.log(lst.toString());
+    if(lst == L_NIL){
+        return L_FALSE;
+    }
+    if(!isDerived(lst.type, L_CONS)){
+        L_ERR = "Error: Not a container!";
+        console.error(L_ERR);
+        return L_FALSE;
+    }else{
+        if(o.type == lst.head().type && o.value == lst.head().value){
+            return L_TRUE;
+        }else{
+            return memberOf(o, lst.tail());
+        }
+    }
+}
+
+function L_MO(arg, env){
+    return memberOf(arg.head(), arg.tail().head());
+}
+
+addToEnv( loliSym("member-of?"), loliPrim(L_OBJ, L_BOOL, L_MO));
+
+function L_LIST(arg, env){
+    if(arg.tail() == L_NIL)
+        return arg;
+    console.log(arg.head().toString());
+    return loliCons(arg.head(), L_LIST(arg.tail(), env));
+}
+
+addToEnv( loliSym("list"), loliPrim(L_OBJ, L_CONS, L_LIST));
+
+function L_STRUCT(name, slots){
+    var tmpType = loliType(name.value, name.value, L_OBJ);
+    var tmpSlot = slots;
+    var l = L_LENGTH(slots);
+    function tmpAcc(arg, env){
+        if(!isDerived(arg.head().type, tmpType)){
+            L_ERR = "Type doesn't match!";
+            console.error(L_ERR);
+            return L_NIL;
+        }else{
+            for(var key in arg.head().value){
+                if(key == arg.tail().head().value){
+                    return arg.head().value[key];
+                }
+            }
+            L_ERR = "Slot " + arg.tail().head().value + " doesn't exist!";
+            console.error(L_ERR);
+            return L_NIL;
+        }
+    }
+    addToEnv( loliSym(name + "-get"), loliPrim(tmpType, L_OBJ, tmpAcc));
+    var tmpConstructor = function(values){
+        var tmpMap = {};
+        var l = L_LENGTH(slots);
+        for(var i = 0; i < l; i++){
+            slot = slots.head().toString();
+            tmpMap[slot] = values.head();
+            slots = slots.tail();
+            values = values.tail();
+        }
+        var obj = loliObj(tmpMap, tmpType);
+        obj.toString = function(){
+            var str = name.value + " : {\n";
+            for(var key in obj.value){
+                str += key;
+                str += " => ";
+                str += obj.value[key].toString();
+                str += "\n";
+            }
+            str += "}";
+            return str;
+        }
+        return obj;
+    }
+    addToEnv( loliSym("make-" + name.value), loliPrim(L_OBJ, tmpType, tmpConstructor));
+    return name;
+}
+
+function PRIM_STRUCT(args, env){
+    return L_STRUCT(args.head(), args.tail());
+}
+
+addToEnv(loliSym("defstruct"), loliPrim(L_OBJ, L_OBJ, PRIM_STRUCT));
 
 function EVAL_W_ENV(str, env){
     return parser(str).eval(env).toString();
