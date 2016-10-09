@@ -1,3 +1,5 @@
+(def abc 3)
+
 (def len (\ :INT (lst)
     (if (eq? lst nil)
         0
