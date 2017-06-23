@@ -707,7 +707,9 @@ addToEnv( loliSym("not"), loliPrim(L_OBJ, L_OBJ, PRIM_NOT));
 addToEnv( loliSym("typeof"), loliPrim(L_OBJ, L_OBJ, PRIM_TYPE_OF));
 addToEnv( loliSym("eq?"), loliPrim(L_OBJ, L_BOOL, PRIM_EQ));
 addToEnv( loliSym(">"), loliPrim(L_NUM, L_BOOL, PRIM_GR));
+addToEnv( loliSym("&gt;"), loliPrim(L_NUM, L_BOOL, PRIM_GR));
 addToEnv( loliSym("<"), loliPrim(L_NUM, L_BOOL, PRIM_LS));
+addToEnv( loliSym("&lt;"), loliPrim(L_NUM, L_BOOL, PRIM_LS));
 
 //Some Collection Functions
 function memberOf(o, lst){
