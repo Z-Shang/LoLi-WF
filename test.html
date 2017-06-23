@@ -12,5 +12,20 @@
         <loli-exp>(+ 1 test abc)</loli-exp>
         <br>
         <loli-exp>(len (quote (1 2 3)))</loli-exp>
+        <br>
+        <loli-exp>
+            (defstruct test-struct
+                name value)
+            (def test-i (make-test-struct "X" 42))
+            (test-struct-get test-i #name)
+        </loli-exp>
+        <br>
+        <b>(let (x 1 y 2) (+ x y)): </b>
+        <loli-exp>
+            (let (x 1 y 2)
+                (+ x y))
+        </loli-exp>
+        <br>
+        <b>(+ X Y):</b> <loli-exp>(+ x y)</loli-exp>
     </body>
 </html>

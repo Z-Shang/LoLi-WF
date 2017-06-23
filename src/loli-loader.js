@@ -91,7 +91,7 @@ function loliBool(value){
     }
 }
 
-var DO_NOT_EVAL = ["if", "def", "set!", "quote", "\\", "defstruct"];
+var DO_NOT_EVAL = ["if", "def", "set!", "quote", "\\", "defstruct", "let"];
 
 function loliCons(car, cdr){
     var consV = Object();
@@ -110,6 +110,8 @@ function loliCons(car, cdr){
     obj.tail = function() { return obj.value["tail"]; }
     obj.eval = function(env) {
         if(DO_NOT_EVAL.indexOf(obj.head().value) >= 0){
+//            console.log("Not Eval:");
+//            console.log(obj.head().value);
             return apply(lookUpWithType(obj.head(), L_FN, L_TOP_ENV), obj.tail(), env);
         }
         var valued_lst = L_NIL;
@@ -598,6 +600,9 @@ function pairUp(str){
 function apply(proc, obj, env){
     if(isDerived(proc.type, L_PRIM)){
         if(isDerived(obj.type, L_CONS)){
+            console.log("Apply: ");
+            console.log(proc.toString());
+            console.log(obj.toString());
             return proc.fn(obj, env);
         }else{
             return proc.fn(loliCons(obj, L_NIL), env);
@@ -746,6 +751,8 @@ function L_STRUCT(name, slots){
     var tmpSlot = slots;
     var l = L_LENGTH(slots);
     function tmpAcc(arg, env){
+        console.log("Acc:");
+        console.log(arg.toString());
         if(!isDerived(arg.head().type, tmpType)){
             L_ERR = "Type doesn't match!";
             console.error(L_ERR);
@@ -753,6 +760,8 @@ function L_STRUCT(name, slots){
         }else{
             for(var key in arg.head().value){
                 if(key == arg.tail().head().value){
+                    console.log("Found " + key);
+                    console.log(arg.head().value[key].toString());
                     return arg.head().value[key];
                 }
             }
@@ -814,8 +823,37 @@ function PRIM_STRUCT(args, env){
 
 addToEnv(loliSym("defstruct"), loliPrim(L_OBJ, L_OBJ, PRIM_STRUCT));
 
+function L_LET(b, exp, env){
+    console.log(b.toString());
+    var tmp_env = env;
+    while(b != L_NIL){
+        console.log("b.head():");
+        console.log(b.head().toString());
+        console.log("b.tail().head():");
+        console.log(b.tail().head().toString());
+        tmp_env = loliCons(loliCons(b.head(), b.tail().head().eval(env)), tmp_env);
+        b = b.tail().tail();
+    }
+    console.log("tmp env:");
+    console.log(tmp_env.toString());
+    console.log("exp:");
+    console.log(exp.toString());
+    var retval = L_NIL;
+    while(exp != L_NIL){
+        retval = exp.head().eval(tmp_env);
+        exp = exp.tail();
+    }
+    return retval;
+}
+
+function PRIM_LET(args, env){
+    return L_LET(args.head(), args.tail(), env);
+}
+addToEnv(loliSym("let"), loliPrim(L_OBJ, L_OBJ, PRIM_LET));
+
 function EVAL_W_ENV(str, env){
-    return parser(str).eval(env).toString();
+    var obj = parser(str);
+    return obj.eval(env).toString();
 }
 
 function EVAL_T_ENV(str){
@@ -823,11 +861,19 @@ function EVAL_T_ENV(str){
 }
 
 function EVAL_FILE_T_ENV(f){
+    var retval = L_NIL;
+    console.log("Eval file: ");
+    console.log(f);
     while(f != ""){
         var tmp = pairUp(f);
         f = f.substring(tmp.length);
-        EVAL_T_ENV(tmp);
+        tmp = tmp.trim();
+        if(tmp.length > 0)
+            retval = EVAL_T_ENV(tmp);
     }
+    console.log("Retval:");
+    console.log(retval.toString());
+    return retval.toString();
 }
 
 //Global Vars for FE
@@ -844,6 +890,7 @@ function genesis(){
     }
 
     //Extract the Node List from rootElement
+    AUTO_EVAL = true;
     rootElement = rootElement[0];
     compileNodeList(rootElement.childNodes);
 }
@@ -859,7 +906,8 @@ loli_ns_proto.attachedCallback = function() {
         EVAL_FILE_T_ENV(o);
         var elms = document.querySelectorAll("loli-exp");
         for(var i = 0; i < elms.length; i++){
-            elms[i].innerHTML = EVAL_T_ENV(elms[i].innerHTML);
+            if(elms[i].innerHTML.trim().length > 0)
+                elms[i].innerHTML = EVAL_FILE_T_ENV(elms[i].innerHTML);
         }
         var elmsm = document.querySelectorAll("loli-exp-m");
         for(var i = 0; i < elmsm.length; i++){
@@ -873,17 +921,20 @@ var loli_ns = document.registerElement("loli-ns", {prototype: loli_ns_proto});
 
 var loli_elm_proto = Object.create(HTMLElement.prototype);
 loli_elm_proto.attachedCallback = function() {
-    if(AUTO_EVAL)
-        this.innerHTML = EVAL_T_ENV(this.innerHTML);
+    if(AUTO_EVAL){
+        var s = this.innerHTML;
+        this.innerHTML = EVAL_FILE_T_ENV(s);
+    }
 }
 var loli_elm = document.registerElement("loli-exp", {prototype: loli_elm_proto});
 
-var loli_elm_m_proto = Object.create(HTMLElement.prototype);
-loli_elm_m_proto.attachedCallback = function() {
-    if(AUTO_EVAL)
-        this.innerHTML = EVAL_FILE_T_ENV(this.innerHTML);
-}
-var loli_elm_m = document.registerElement("loli-exp-m", {prototype: loli_elm_m_proto});
+//var loli_elm_m_proto = Object.create(HTMLElement.prototype);
+//loli_elm_m_proto.attachedCallback = function() {
+//    if(AUTO_EVAL)
+//        this.innerHTML = EVAL_FILE_T_ENV(this.innerHTML);
+//}
+//var loli_elm_m = document.registerElement("loli-m", {prototype: loli_elm_m_proto});
+
 //Compiler
 //
 //DOM Object to String
@@ -902,6 +953,8 @@ function getExp(n){
 function compileNode(n){
     if(n.hasAttribute){
         if(n.hasAttribute("loli-exp")){
+            console.log("Compile Node:");
+            console.log(n);
             n.innerHTML = EVAL_T_ENV(getExp(n));
         }
     }
