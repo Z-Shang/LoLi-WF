@@ -1,0 +1,8 @@
+(def abc 3)
+
+(def len (\ :INT (lst)
+    (if (eq? lst nil)
+        0
+        (if (not (eq? (typeof lst) #Cons))
+            1
+            (+ 1 (len (tail lst)))))))

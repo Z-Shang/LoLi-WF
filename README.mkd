@@ -1,13 +1,15 @@
-LoLi-WF
-=
+# LoLi-WF
+---
+**`master` branch is deprecated, check `dev` for new stuffs.**
+---
 
 ![LoLi-WF](/loliwf.png)
 
 LoLi-WF is an embeddable *meta* web framework using LoLi instead of JS, based on LoLi-JS.
 
 ---
-Features
-=
+## Features
+---
 Load `.loli` files from server side into client-side environment, and evaluate LoLi code within HTML. For example:
 
     <html>
@@ -24,6 +26,6 @@ Load `.loli` files from server side into client-side environment, and evaluate L
     </html>
 
 ---
-Licence
-=
+## Licence
+---
 **GPLv3+**

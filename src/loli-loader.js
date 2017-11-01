@@ -878,6 +878,12 @@ function EVAL_FILE_T_ENV(f){
     return retval.toString();
 }
 
+// File IO
+
+function READ_FILE(str, env){
+    
+}
+
 //Global Vars for FE
 var metas,
     rootElement,
