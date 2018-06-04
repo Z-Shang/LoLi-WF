@@ -28,4 +28,4 @@ Load `.loli` files from server side into client-side environment, and evaluate L
 ---
 ## Licence
 ---
-**GPLv3+**
+**AGPLv3+**
